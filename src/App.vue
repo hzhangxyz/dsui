@@ -44,13 +44,13 @@
   z-index: 100;
   font-size: 16px;
   font-weight: 500;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   transition: all 0.3s ease;
 }
 
 .update-button:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(0,0,0,0.15);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
 }
 
 .container {
@@ -68,7 +68,7 @@
 
 .text-area {
   height: 140px;
-  width: 500px;
+  width: 400px;
   padding: 15px;
   font-size: 15px;
   line-height: 1.6;
@@ -95,7 +95,7 @@
 .info-card {
   padding: 18px;
   border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
 .basic-info {
@@ -121,7 +121,8 @@
   font-weight: 600;
 }
 
-.info-item, .info-content {
+.info-item,
+.info-content {
   margin-bottom: 10px;
   font-size: 14px;
   color: #555;
@@ -138,7 +139,7 @@
 import { ref } from "vue";
 import { rule_t } from "./jsds.mjs";
 
-let arrayData = ref([{ text: "" }]);
+let arrayData = ref([{}]);
 let round = 1;
 let last_round = 0;
 
@@ -153,15 +154,15 @@ const updateText = (index, input) => {
     return;
   }
   const elem = new rule_t(input);
-  const text = elem.toString();
-  arrayData.value[index].data = elem.data();
-  arrayData.value[index].text = text;
-  arrayData.value[index].rule = elem.length() != 0;
-  arrayData.value[index].fact = elem.length() == 0;
-  arrayData.value[index].round = round++;
-  arrayData.value[index].from = "user";
+  arrayData.value[index] = {
+    text: elem.toString(),
+    rule: elem.length() != 0,
+    fact: elem.length() == 0,
+    round: round++,
+    from: "user",
+  };
   if (index === arrayData.value.length - 1) {
-    arrayData.value.push({ text: "" });
+    arrayData.value.push({});
   }
 };
 
@@ -211,8 +212,7 @@ const updateDataset = () => {
         parent_fact: fact.text,
       };
       arrayData.value[arrayData.value.length - 1] = item;
-      arrayData.value.push({ text: "" });
-      console.log(i, j);
+      arrayData.value.push({});
     }
   }
   last_round = round++;
