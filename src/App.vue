@@ -1,5 +1,4 @@
 <template>
-  <button class="update-button" @click="updateDataset">Update</button>
   <div class="container">
     <div v-for="(item, index) in arrayData" class="item-container">
       <textarea
@@ -7,14 +6,14 @@
         :value="item.text"
         @blur="(event) => updateText(index, event.target.value)"
       ></textarea>
-      <div class="info-grid" v-if="item.text != ''">
-        <div v-if="item.from != 'engine'" class="empty-column"></div>
-        <div v-if="item.from != 'engine'" class="empty-column"></div>
-        <div v-if="item.from == 'engine'" class="info-card parent-rule">
+      <div class="info-grid" v-if="item.text !== ''">
+        <div v-if="item.from !== 'engine'" class="empty-column"></div>
+        <div v-if="item.from !== 'engine'" class="empty-column"></div>
+        <div v-if="item.from === 'engine'" class="info-card parent-rule">
           <h3>Parent Rule</h3>
           <div class="info-content">{{ item.parent_rule }}</div>
         </div>
-        <div v-if="item.from == 'engine'" class="info-card parent-fact">
+        <div v-if="item.from === 'engine'" class="info-card parent-fact">
           <h3>Parent Fact</h3>
           <div class="info-content">{{ item.parent_fact }}</div>
         </div>
@@ -28,15 +27,45 @@
       </div>
     </div>
   </div>
+
+  <div class="global-actions">
+    <button class="action-button init-data" @click="initData">
+      Clear Data
+    </button>
+    <button class="action-button load-data" @click="loadData">Load Data</button>
+    <button class="action-button dump-data" @click="dumpData">Dump Data</button>
+    <button class="action-button update-data" @click="updateDataset">
+      Update Data
+    </button>
+  </div>
 </template>
 
 <style scoped>
-.update-button {
-  position: fixed;
-  right: 30px;
-  bottom: 30px;
-  padding: 12px 28px;
+.init-data {
+  bottom: 240px;
+  background: linear-gradient(135deg, #ff8a00, #ff5000);
+}
+
+.load-data {
+  bottom: 180px;
+  background: linear-gradient(135deg, #ffc371, #ff5f6d);
+}
+
+.dump-data {
+  bottom: 120px;
+  background: linear-gradient(135deg, #4facfe, #00f2fe);
+}
+
+.update-data {
+  bottom: 60px;
   background: linear-gradient(135deg, #6e8efb, #a777e3);
+}
+
+.action-button {
+  position: fixed;
+  width: 150px;
+  right: 30px;
+  padding: 12px 28px;
   color: white;
   border: none;
   border-radius: 8px;
@@ -141,7 +170,7 @@ import { rule_t } from "./jsds.mjs";
 
 let arrayData = ref([{}]);
 let round = 1;
-let last_round = 0;
+let lastRound = 0;
 
 const updateText = (index, input) => {
   if (input === "") {
@@ -156,8 +185,8 @@ const updateText = (index, input) => {
   const elem = new rule_t(input);
   arrayData.value[index] = {
     text: elem.toString(),
-    rule: elem.length() != 0,
-    fact: elem.length() == 0,
+    rule: elem.length() !== 0,
+    fact: elem.length() === 0,
     round: round++,
     from: "user",
   };
@@ -189,7 +218,7 @@ const updateDataset = () => {
       if (fact.rule) {
         continue;
       }
-      if (rule.round <= last_round && fact.round <= last_round) {
+      if (rule.round <= lastRound && fact.round <= lastRound) {
         continue;
       }
       const elem = new rule_t(rule.text).match(new rule_t(fact.text));
@@ -204,8 +233,8 @@ const updateDataset = () => {
       }
       let item = {
         text: text,
-        rule: elem.length() != 0,
-        fact: elem.length() == 0,
+        rule: elem.length() !== 0,
+        fact: elem.length() === 0,
         round: round + 1,
         from: "engine",
         parent_rule: rule.text,
@@ -215,10 +244,68 @@ const updateDataset = () => {
       arrayData.value.push({});
     }
   }
-  last_round = round++;
+  lastRound = round++;
 };
 
-updateText(0, "(`a < `b) (`b < `c) (`a < `c)");
-updateText(1, "(1 < 2)");
-updateText(2, "(2 < 3)");
+const dumpData = () => {
+  const result = {
+    round: round,
+    lastRound: lastRound,
+    dataArray: arrayData.value,
+  };
+  const text = JSON.stringify(result);
+  const blob = new Blob([text], { type: "application/json" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "data.json";
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(a.href);
+};
+
+const loadData = (data) => {
+  const input = document.createElement("input");
+  input.type = "file";
+  input.accept = "application/json";
+
+  input.onchange = (event) => {
+    const file = event.target.files[0];
+    if (!file) {
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      let text = event.target.result;
+      let data;
+      try {
+        data = JSON.parse(text);
+      } catch (error) {
+        return;
+      }
+      round = data.round;
+      lastRound = data.lastRound;
+      arrayData.value = data.dataArray;
+      if (
+        arrayData.value.length === 0 ||
+        arrayData.value[arrayData.value.length - 1].text !== ""
+      ) {
+        arrayData.value.push({});
+      }
+    };
+    reader.readAsText(file);
+  };
+
+  input.click();
+};
+
+const initData = () => {
+  arrayData.value = [{}];
+  updateText(0, "(`a < `b) (`b < `c) (`a < `c)");
+  updateText(1, "(1 < 2)");
+  updateText(2, "(2 < 3)");
+};
+
+initData();
 </script>
