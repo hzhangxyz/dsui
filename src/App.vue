@@ -289,7 +289,7 @@ const loadData = (data) => {
       arrayData.value = data.dataArray;
       if (
         arrayData.value.length === 0 ||
-        arrayData.value[arrayData.value.length - 1].text !== ""
+        arrayData.value[arrayData.value.length - 1]?.text === ""
       ) {
         arrayData.value.push({});
       }
