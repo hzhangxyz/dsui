@@ -7,8 +7,10 @@
 import { ref, computed } from "vue";
 import Header from "./Header.vue";
 import Search from "./Search.vue";
+import Match from "./Match.vue";
 const routes = {
   "/search": Search,
+  "/match": Match,
 };
 
 const currentPath = ref(window.location.hash);
