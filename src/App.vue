@@ -1,6 +1,6 @@
 <template>
   <div class="container">
-    <div v-for="(item, index) in arrayData" class="item-container">
+    <div v-for="(item, index) in arrayData" :key=item.text class="item-container">
       <textarea
         class="text-area"
         :value="item.text"
